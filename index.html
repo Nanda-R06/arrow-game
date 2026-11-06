@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Arrow Escape - The Arrow Puzzle Game</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏹</text></svg>">
+</head>
+<body class="theme-dark">
+    <div id="app-container">
+        <!-- Header & HUD -->
+        <header>
+            <div class="top-bar">
+                <div class="logo-area">
+                    <span class="logo-icon">🏹</span>
+                    <h1>ARROW ESCAPE</h1>
+                </div>
+                <div id="level-indicator" class="level-badge">
+                    <span>Level 1</span>
+                </div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="hud-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Moves</span>
+                    <span id="stat-moves" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Mistakes</span>
+                    <span id="stat-mistakes" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Score</span>
+                    <span id="stat-score" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Combo</span>
+                    <span id="stat-combo" class="stat-value">0x</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Time</span>
+                    <span id="stat-time" class="stat-value">0:00</span>
+                </div>
+            </div>
+
+            <div id="hint-banner" class="hint-banner">
+                Tap an arrow to release it!
+            </div>
+        </header>
+
+        <!-- Main Game Viewport -->
+        <main class="game-viewport">
+            <canvas id="game-canvas"></canvas>
+        </main>
+
+        <!-- Bottom Controls Bar -->
+        <footer class="bottom-bar">
+            <div class="btn-group">
+                <button id="btn-levels" class="btn" title="Level Select">
+                    <span>📋</span>
+                    <span>Levels</span>
+                </button>
+                <button id="btn-endless" class="btn" title="Endless Generator">
+                    <span>♾️</span>
+                    <span>Endless</span>
+                </button>
+            </div>
+
+            <div class="btn-group">
+                <button id="btn-undo" class="btn btn-icon" title="Undo Move">
+                    <span>↶</span>
+                </button>
+                <button id="btn-hint" class="btn btn-icon" title="Hint">
+                    <span>💡</span>
+                </button>
+                <button id="btn-restart" class="btn btn-icon" title="Restart Level">
+                    <span>🔄</span>
+                </button>
+                <button id="btn-sound" class="btn btn-icon" title="Toggle Sound">
+                    <span id="sound-icon">🔊</span>
+                </button>
+                <button id="btn-theme" class="btn btn-icon" title="Switch Theme">
+                    <span>🎨</span>
+                </button>
+                <button id="btn-help" class="btn btn-icon" title="How to Play">
+                    <span>❓</span>
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal: Victory / Level Complete -->
+    <div id="modal-victory" class="modal-backdrop">
+        <div class="modal-box">
+            <h2 class="modal-title">Level Cleared! 🎉</h2>
+            <p id="victory-subtitle" class="modal-subtitle">Great spatial puzzle solving!</p>
+
+            <div class="star-container">
+                <span id="star-1" class="star">★</span>
+                <span id="star-2" class="star">★</span>
+                <span id="star-3" class="star">★</span>
+            </div>
+
+            <div class="score-summary-grid">
+                <div class="summary-item">
+                    <span class="summary-label">Moves Taken</span>
+                    <span id="summary-moves" class="summary-val">0</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Mistakes</span>
+                    <span id="summary-mistakes" class="summary-val">0</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Time Elapsed</span>
+                    <span id="summary-time" class="summary-val">0:00</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Score Earned</span>
+                    <span id="summary-score" class="summary-val">0</span>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button id="btn-next-level" class="btn btn-primary" style="padding: 14px; font-size: 16px;">
+                    Next Level ➔
+                </button>
+                <div class="modal-actions-row">
+                    <button id="btn-victory-replay" class="btn" style="flex: 1;">Replay 🔄</button>
+                    <button id="btn-victory-levels" class="btn" style="flex: 1;">Levels 📋</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Math Gate Checkpoint -->
+    <div id="modal-math" class="modal-backdrop">
+        <div class="modal-box" style="max-width: 480px;">
+            <div class="math-header">
+                <span class="math-icon">🧠</span>
+                <h2 class="modal-title">Brain Gate Checkpoint!</h2>
+            </div>
+            <p id="math-subtitle" class="modal-subtitle">Solve this math question to unlock Level 2!</p>
+
+            <div class="math-card">
+                <div id="math-question" class="math-question">24 + 18 = ?</div>
+            </div>
+
+            <div id="math-options" class="math-options-grid">
+                <!-- 4 interactive options injected via js -->
+            </div>
+
+            <div id="math-feedback" class="math-feedback"></div>
+
+            <div class="modal-actions" style="margin-top: 16px;">
+                <button id="btn-math-skip" class="btn" style="font-size: 13px; opacity: 0.8;">View Level Stats / Skip ➔</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Level Select -->
+    <div id="modal-levels" class="modal-backdrop">
+        <div class="modal-box" style="max-width: 520px;">
+            <h2 class="modal-title">Select Level</h2>
+            <p class="modal-subtitle">Master all handcrafted campaign challenges</p>
+
+            <div id="levels-container" class="level-grid">
+                <!-- Dynamically generated level cells -->
+            </div>
+
+            <div class="modal-actions">
+                <button id="btn-close-levels" class="btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Endless Generator -->
+    <div id="modal-endless" class="modal-backdrop">
+        <div class="modal-box">
+            <h2 class="modal-title">Endless Mode ♾️</h2>
+            <p class="modal-subtitle">Generate custom guaranteed-solvable puzzles</p>
+
+            <div class="generator-options">
+                <div class="option-group">
+                    <label>Grid Size</label>
+                    <div id="gen-size-control" class="segmented-control">
+                        <button class="segment-btn" data-size="4">4x4</button>
+                        <button class="segment-btn active" data-size="5">5x5</button>
+                        <button class="segment-btn" data-size="6">6x6</button>
+                        <button class="segment-btn" data-size="7">7x7</button>
+                        <button class="segment-btn" data-size="8">8x8</button>
+                    </div>
+                </div>
+
+                <div class="option-group">
+                    <label>Difficulty</label>
+                    <div id="gen-diff-control" class="segmented-control">
+                        <button class="segment-btn active" data-diff="casual">Casual</button>
+                        <button class="segment-btn" data-diff="tricky">Tricky</button>
+                        <button class="segment-btn" data-diff="master">Master</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button id="btn-generate-play" class="btn btn-primary" style="padding: 12px;">
+                    Generate & Play 🚀
+                </button>
+                <button id="btn-close-endless" class="btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: How to Play -->
+    <div id="modal-help" class="modal-backdrop">
+        <div class="modal-box">
+            <h2 class="modal-title">How to Play 🏹</h2>
+            <p class="modal-subtitle">Clear every arrow from the grid!</p>
+
+            <div style="text-align: left; font-size: 14px; line-height: 1.6; color: var(--text-secondary); margin-bottom: 20px;">
+                <p>🎯 <strong>Objective:</strong> Release every arrow until the board is completely empty.</p>
+                <br>
+                <p>➡️ <strong>Flight Path:</strong> When tapped, an arrow attempts to fly straight in the direction it points (↑, ↓, ←, → or diagonals).</p>
+                <br>
+                <p>💥 <strong>Collisions:</strong> If another arrow or stone obstacle blocks its direct path, it will collide and bounce back!</p>
+                <br>
+                <p>🧠 <strong>Order Matters:</strong> Untangle the outermost unblocked arrows first to clear paths for arrows trapped in the center.</p>
+                <br>
+                <p>⭐ <strong>Combos & Stars:</strong> Consecutive escapes build up combos and higher scores. Complete with 0 mistakes for 3 Stars!</p>
+            </div>
+
+            <div class="modal-actions">
+                <button id="btn-close-help" class="btn btn-primary">Got it!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/audio.js"></script>
+    <script src="js/particles.js"></script>
+    <script src="js/solver.js"></script>
+    <script src="js/generator.js"></script>
+    <script src="js/levels.js"></script>
+    <script src="js/math.js"></script>
+    <script src="js/renderer.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
